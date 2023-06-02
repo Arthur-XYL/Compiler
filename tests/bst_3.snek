@@ -1,0 +1,24 @@
+(fun (node val left right)
+    (if (isnum val)
+        (tuple val left right)
+        nil
+    )
+    
+)
+
+(fun (insert node val)
+    (if (= node nil)
+        (node val nil nil)
+        (if (= val (index node 0))
+            node
+            (if (> val (index node 0))
+                (node (index node 0) (index node 1) (insert (index node 2) val))
+                (node (index node 0) (insert (index node 1) val) (index node 2))
+            ) 
+        )
+    )
+)
+
+(let ((a nil))
+    (insert a 1)
+)

@@ -1,0 +1,15 @@
+/Users/arthur/Desktop/CSE 131/HW/egg-eater/target/debug/deps/csv-730bb501e5eee824.rmeta: /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/lib.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/byte_record.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/cookbook.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/debug.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/deserializer.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/error.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/reader.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/serializer.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/string_record.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/tutorial.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/writer.rs
+
+/Users/arthur/Desktop/CSE 131/HW/egg-eater/target/debug/deps/csv-730bb501e5eee824.d: /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/lib.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/byte_record.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/cookbook.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/debug.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/deserializer.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/error.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/reader.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/serializer.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/string_record.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/tutorial.rs /Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/writer.rs
+
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/lib.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/byte_record.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/cookbook.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/debug.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/deserializer.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/error.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/reader.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/serializer.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/string_record.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/tutorial.rs:
+/Users/arthur/.cargo/registry/src/github.com-1ecc6299db9ec823/csv-1.2.1/src/writer.rs:
