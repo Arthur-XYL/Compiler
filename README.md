@@ -1,35 +1,35 @@
 # Compiler
 This is a compiler for the snek programming language.
 
-Syntax of the snek programming language:
-<prog> := <defn>* <expr>
- <defn> := (fun (<name> <name>*) <expr>)
-<expr> :=
- | <number>(i64)
- | <boolean> := true | false
- | input := true | false | <number>
- | <identifier>(String)
- | (let ((<identifier> <expr>)+) <expr>)
- | (<op1> <expr>)
- | (<op2> <expr> <expr>)
- | (set! <name> <expr>)
- | (if <expr> <expr> <expr>)
- | (block <expr>+)
- | (loop <expr>)
- | (break <expr>)
- | (tuple <expr>+) 
- | (index <expr> <expr>)
- | (<name> <expr>*)
-<op1> := add1 | sub1 | isnum | isbool | print
-<op2> := + | - | * | < | > | >= | <= | =
-where
-   "+"  - at least one of the marked element
-   "*"  - zero or more of the marked element.
-   ":=" - the structure of the element
-   "|"  - can be one of the elements separated by this character
-   "(type)" - the type of the element
-   "<expr>"    - represents an expression
-   "<element>" - represents the value of the element
+Syntax of the snek programming language:     
+<prog> := <defn>* <expr>        
+ <defn> := (fun (<name> <name>*) <expr>)        
+<expr> :=       
+ | <number>(i64)         
+ | <boolean> := true | false       
+ | input := true | false | <number>      
+ | <identifier>(String)       
+ | (let ((<identifier> <expr>)+) <expr>)      
+ | (<op1> <expr>)         
+ | (<op2> <expr> <expr>)     
+ | (set! <name> <expr>)     
+ | (if <expr> <expr> <expr>)     
+ | (block <expr>+)    
+ | (loop <expr>)    
+ | (break <expr>)     
+ | (tuple <expr>+)      
+ | (index <expr> <expr>)      
+ | (<name> <expr>*)      
+<op1> := add1 | sub1 | isnum | isbool | print       
+<op2> := + | - | * | < | > | >= | <= | =      
+where       
+   "+"  - at least one of the marked element    
+   "*"  - zero or more of the marked element.    
+   ":=" - the structure of the element     
+   "|"  - can be one of the elements separated by this character    
+   "(type)" - the type of the element   
+   "<expr>"    - represents an expression     
+   "<element>" - represents the value of the element    
                                      
 There are some files in the tests directory that you can reference. 
 If you want to write a snek program, do the following:
