@@ -38,3 +38,5 @@ If you want to write a snek program, do the following:
 3. Write the snek program inside the file and save it
 4. type "make [name].run" without the quotation mark onto the command line to compile
 5. type "./[name].run" to run the program
+
+You can check the files in the tests directory for reference. 
