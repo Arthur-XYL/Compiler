@@ -10,24 +10,31 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
     }
 
     let mut env = HashMap::new();
-    env.insert("input".to_string(), 0 as u32);
     let mut fun_map = HashMap::new();
     let mut label = 0;
+
+    let mut max_depth = 0;
 
     for fun in exprs.iter().take(exprs.len() - 1) {
         match fun {
             Expr::FunDef(name, params, body) => match fun_map.get(name) {
                 Some(_val) => panic!("Invalid: multiple functions defined with same name"),
                 None => {
-                    fun_map.insert(
-                        name.clone(),
-                        (params.len() as u32, params.len() as u32 + depth(body)),
-                    );
+
+                    let fun_depth = params.len() as u32 + depth(body);
+                    max_depth = max_depth.max(fun_depth);
+                    fun_map.insert(name.clone(), (params.len() as u32, fun_depth));
                 }
             },
             _ => panic!("Invalid: expected function definition"),
         }
     }
+
+    let keys: Vec<_> = fun_map.keys().cloned().collect();
+    for fun_name in keys {
+        let (arg_count, _fun_depth) = *fun_map.get(&fun_name).unwrap();
+        fun_map.insert(fun_name, (arg_count, max_depth));
+    }    
 
     let mut func_instrs = String::new();
     for fun in exprs.iter().take(exprs.len() - 1) {
@@ -55,7 +62,7 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
 ret"
                 ));
             }
-            _ => panic!("Expected function definition"),
+            _ => panic!("Invalid: expected function definition"),
         }
     }
 
@@ -63,22 +70,44 @@ ret"
         Expr::FunDef(_name, _params, _body) => panic!("Invalid: no expression found"),
         _ => {
             let expr = exprs.last().expect("Expected at least one expression");
-            let expr_instrs = compile_expr(expr, 1, &mut env, &mut fun_map, "", true, &mut label);
-            let depth = 1 + depth(expr);
+            env.insert("input".to_string(), 1 as u32);
+            let main_depth = 1 + depth(expr);
+            let expr_instrs = compile_expr(expr, 2, &mut env, &mut fun_map, "", true, &mut label);
+            max_depth = max_depth.max(main_depth);
 
-            let offset = if depth % 2 == 0 {
-                depth * 8
+            //             let offset = if depth % 2 == 0 {
+            //                 depth * 8
+            //             } else {
+            //                 (depth + 1) * 8
+            //             };
+
+            //             format!(
+            //                 "
+            // jmp main{func_instrs}
+            // main:
+            // sub rsp, {offset}
+            // mov [rsp], rdi{expr_instrs}
+            // add rsp, {offset}",
+            //             )
+            func_instrs.push_str(&format!(
+                "
+main:{expr_instrs}
+ret"
+            ));
+
+            let offset = if max_depth % 2 == 0 {
+                (max_depth + 1) * 8
             } else {
-                (depth + 1) * 8
+                max_depth * 8
             };
-
             format!(
                 "
-jmp main{func_instrs}
-main:
+jmp program{func_instrs}
+program: 
 sub rsp, {offset}
-mov [rsp], rdi{expr_instrs}
-add rsp, {offset}",
+mov [rsp], rdi
+call main
+add rsp, {offset}"
             )
         }
     }
@@ -400,27 +429,40 @@ cmove rax, rcx"
                     instrs.push_str(&arg_instrs);
                     instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
                 }
-
-                let offset_index = if *depth % 2 == 0 { *depth + 1 } else { *depth };
-                let arg_index = si + offset_index;
-                let offset = offset_index * 8;
-                instrs.push_str(&format!("\nsub rsp, {offset}"));
-
-                for index in 0..arg_count {
-                    instrs.push_str(&format!(
-                        "
+                if tail {
+                    let arg_index = si;
+                    for index in 0..arg_count {
+                        instrs.push_str(&format!(
+                            "
 mov rbx, [rsp + {}]
 mov [rsp + {}], rbx",
-                        (arg_index + index) * 8,
-                        index * 8
-                    ));
-                }
+                            (arg_index + index) * 8,
+                            (index + 1) * 8
+                        ));
+                    }
+                    instrs.push_str(&format!("\njmp {fun_label}"));
+                } else {
+                    let offset_index = if *depth % 2 == 0 { *depth + 1 } else { *depth };
+                    let arg_index = si + offset_index;
+                    let offset = offset_index * 8;
+                    instrs.push_str(&format!("\nsub rsp, {offset}"));
 
-                instrs.push_str(&format!(
-                    "
+                    for index in 0..arg_count {
+                        instrs.push_str(&format!(
+                            "
+mov rbx, [rsp + {}]
+mov [rsp + {}], rbx",
+                            (arg_index + index) * 8,
+                            index * 8
+                        ));
+                    }
+
+                    instrs.push_str(&format!(
+                        "
 call {fun_label}
 add rsp, {offset}"
-                ));
+                    ));
+                }
 
                 instrs
             }
