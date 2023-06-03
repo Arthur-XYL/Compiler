@@ -1,0 +1,4 @@
+(fun (function input)
+    true
+)
+(function 3)

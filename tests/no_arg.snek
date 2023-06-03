@@ -1,0 +1,9 @@
+(fun (function)
+    true
+)
+(let ((a (function)))
+    (if (= a (isnum a))
+        (print (isbool a))
+        (print (isnum a))
+    )
+)

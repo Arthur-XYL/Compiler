@@ -1,0 +1,29 @@
+(fun (no_arg)
+    (print true)
+)
+
+(fun (one_arg a)
+    (print a)
+)
+
+(fun (two_arg a b)
+    (block
+        (print a)
+        (print b)
+    )
+)
+
+(fun (three_arg a b c)
+    (block
+        (print a)
+        (print b)
+        (print c)
+    )
+)
+
+(block 
+    (print (no_arg))
+    (print (one_arg 1))
+    (print (two_arg 2 3))
+    (print (three_arg 4 5 6))
+)

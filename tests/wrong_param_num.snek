@@ -1,0 +1,5 @@
+(fun (function a b)
+    true
+)
+
+(function 3 4 true)

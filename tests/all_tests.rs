@@ -32,6 +32,51 @@ success_tests! {
         file: "bst_3.snek",
         expected: "(tuple 1 nil nil)",
     },
+    {
+        name: fact,
+        file: "fact.snek",
+        input: "10",
+        expected: "3628800",
+    },
+    {
+        name: even_odd_1,
+        file: "even_odd.snek",
+        input: "10",
+        expected: "10\ntrue\ntrue",
+    },
+    {
+        name: even_odd_2,
+        file: "even_odd.snek",
+        input: "9",
+        expected: "9\nfalse\nfalse",
+    },
+    {
+        name: fact_recursive,
+        file: "fact_recursive.snek",
+        input: "10",
+        expected: "3628800"
+    },
+    {
+        name: no_arg,
+        file: "no_arg.snek",
+        expected: "false\nfalse"
+    },
+    {
+        name: no_funcall,
+        file: "no_funcall.snek",
+        input: "10",
+        expected: "20"
+    },
+    {
+        name: many_print,
+        file: "many_print.snek",
+        expected: "true\ntrue\n1\n1\n2\n3\n3\n4\n5\n6\n6\n6"
+    },
+    {
+        name: fun_call_fun,
+        file: "fun_call_fun.snek",
+        expected: "1255728436324481025"
+    },
 }
 
 runtime_error_tests! {
@@ -45,6 +90,11 @@ runtime_error_tests! {
         file: "error_bounds.snek",
         expected: ""
     },
+    {
+        name: wrong_param_type,
+        file: "wrong_param_type.snek",
+        expected: ""
+    },
 }
 
 static_error_tests! {
@@ -53,4 +103,30 @@ static_error_tests! {
         file: "error3.snek",
         expected: ""
     },
+    {
+        name: duplicate_params,
+        file: "duplicate_params.snek",
+        expected: "",
+    },
+    {
+        name: input_param,
+        file: "input_param.snek",
+        expected: ""
+    },
+    {
+        name: wrong_param_num,
+        file: "wrong_param_num.snek",
+        expected: ""
+    },
+    {
+        name: invalid_name,
+        file: "invalid_name.snek",
+        expected: ""
+    },
+    {
+        name: fun_with_input,
+        file: "fun_with_input.snek",
+        expected: ""
+    },
+
 }
