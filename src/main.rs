@@ -37,8 +37,7 @@ sub rsp, 8
 mov rdi, 3
 call snek_error
 our_code_starts_here:
-mov r15, rsi{result}
-ret"
+mov r15, rsi{result}"
     );
 
     let mut out_file = File::create(out_name)?;

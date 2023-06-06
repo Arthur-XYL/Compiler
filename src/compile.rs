@@ -75,20 +75,6 @@ ret"
             let expr_instrs = compile_expr(expr, 2, &mut env, &mut fun_map, "", true, &mut label);
             max_depth = max_depth.max(main_depth);
 
-            //             let offset = if depth % 2 == 0 {
-            //                 depth * 8
-            //             } else {
-            //                 (depth + 1) * 8
-            //             };
-
-            //             format!(
-            //                 "
-            // jmp main{func_instrs}
-            // main:
-            // sub rsp, {offset}
-            // mov [rsp], rdi{expr_instrs}
-            // add rsp, {offset}",
-            //             )
             func_instrs.push_str(&format!(
                 "
 main:{expr_instrs}
@@ -101,13 +87,12 @@ ret"
                 max_depth * 8
             };
             format!(
-                "
-jmp program{func_instrs}
-program: 
+                " 
 sub rsp, {offset}
 mov [rsp], rdi
 call main
-add rsp, {offset}"
+add rsp, {offset}
+ret{func_instrs}"
             )
         }
     }

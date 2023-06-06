@@ -77,6 +77,23 @@ success_tests! {
         file: "fun_call_fun.snek",
         expected: "1255728436324481025"
     },
+    {
+        name: tail1,
+        file: "tail1.snek",
+        input: "10",
+        expected: "3628800"
+    },
+    {
+        name: tail2,
+        file: "tail2.snek",
+        input: "9",
+        expected: "9\nfalse\nfalse",
+    },
+    {
+        name: tail3,
+        file: "tail3.snek",
+        expected: "1255728436324481025"
+    },
 }
 
 runtime_error_tests! {
