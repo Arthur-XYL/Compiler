@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::HashSet;
 
 use crate::expr::Expr;
 use crate::expr::Op1;
@@ -13,52 +14,70 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
     let mut fun_map = HashMap::new();
     let mut label = 0;
 
-    let mut max_depth = 0;
+    let mut param_depth = 0;
 
     for fun in exprs.iter().take(exprs.len() - 1) {
         match fun {
-            Expr::FunDef(name, params, body) => match fun_map.get(name) {
+            Expr::FunDef(name, params, _body) => match fun_map.get(name) {
                 Some(_val) => panic!("Invalid: multiple functions defined with same name"),
                 None => {
-
-                    let fun_depth = params.len() as u32 + depth(body);
-                    max_depth = max_depth.max(fun_depth);
-                    fun_map.insert(name.clone(), (params.len() as u32, fun_depth));
+                    param_depth = param_depth.max(params.len() as u32);
+                    fun_map.insert(name.clone(), (params.len() as u32, 0));
                 }
             },
             _ => panic!("Invalid: expected function definition"),
         }
     }
 
+    if param_depth % 2 == 0 {
+        param_depth += 1
+    }
     let keys: Vec<_> = fun_map.keys().cloned().collect();
     for fun_name in keys {
-        let (arg_count, _fun_depth) = *fun_map.get(&fun_name).unwrap();
-        fun_map.insert(fun_name, (arg_count, max_depth));
-    }    
+        let (param_count, _) = *fun_map.get(&fun_name).unwrap();
+        fun_map.insert(fun_name, (param_count, param_depth));
+    }
 
-    let mut func_instrs = String::new();
+    let mut fun_instrs = String::new();
     for fun in exprs.iter().take(exprs.len() - 1) {
         match fun {
             Expr::FunDef(name, params, body) => {
                 let mut fun_env = HashMap::new();
-                let mut si_ = 1;
+                let mut si_ = 0;
 
-                let mut param_list = Vec::new();
+                let mut param_set = HashSet::new();
                 for param in params {
-                    if param_list.contains(param) {
+                    if param_set.contains(param) {
                         panic!("Invalid: function parameters has duplicate name")
                     }
-                    param_list.push(param.to_string());
+                    param_set.insert(param.to_string());
                     fun_env.insert(param.to_string(), si_);
                     si_ += 1;
                 }
 
+                let mut depth = params.len() as u32 + depth(body);
+                if depth % 2 == 1 {
+                    depth += 1;
+                }
+                let offset = depth * 8;
                 let fun_label = format!("fun_{}", name);
+
+                let mut param_instrs = String::new();
+                for index in 0..params.len() {
+                    param_instrs.push_str(&format!(
+                        "
+mov rbx, [rsp + {}]
+mov [rsp + {}], rbx", offset + (index as u32 + 1) * 8, index * 8));
+                }
                 let body_instrs =
-                    compile_expr(body, si_, &mut fun_env, &mut fun_map, "", true, &mut label);
-                func_instrs.push_str(&format!(
+                    compile_expr(body, si_, &mut fun_env, &mut fun_map, "", true, &mut label, depth);
+
+                
+                fun_instrs.push_str(&format!(
                     "
-{fun_label}:{body_instrs}
+{fun_label}:
+sub rsp, {offset}{param_instrs}{body_instrs}
+add rsp, {offset}
 ret"
                 ));
             }
@@ -70,29 +89,33 @@ ret"
         Expr::FunDef(_name, _params, _body) => panic!("Invalid: no expression found"),
         _ => {
             let expr = exprs.last().expect("Expected at least one expression");
-            env.insert("input".to_string(), 1 as u32);
-            let main_depth = 1 + depth(expr);
-            let expr_instrs = compile_expr(expr, 2, &mut env, &mut fun_map, "", true, &mut label);
-            max_depth = max_depth.max(main_depth);
-
-            func_instrs.push_str(&format!(
+            env.insert("input".to_string(), 0 as u32);
+            let mut depth = 1 + depth(expr);
+            if depth % 2 == 1 {
+                depth += 1;
+            }
+            let offset = depth * 8;
+            let param_instrs = format!("
+mov rbx, [rsp + {}]
+mov [rsp], rbx", offset + 8);
+            let expr_instrs = compile_expr(expr, 1, &mut env, &mut fun_map, "", true, &mut label, depth);
+  
+            fun_instrs.push_str(&format!(
                 "
-main:{expr_instrs}
+main:
+sub rsp, {offset}{param_instrs}{expr_instrs}
+add rsp, {offset}
 ret"
             ));
 
-            let offset = if max_depth % 2 == 0 {
-                (max_depth + 1) * 8
-            } else {
-                max_depth * 8
-            };
+            
             format!(
                 " 
-sub rsp, {offset}
+sub rsp, {0}
 mov [rsp], rdi
 call main
-add rsp, {offset}
-ret{func_instrs}"
+add rsp, {0}
+ret{fun_instrs}", param_depth * 8
             )
         }
     }
@@ -106,6 +129,7 @@ fn compile_expr(
     break_target: &str,
     tail: bool,
     label: &mut u32,
+    depth: u32
 ) -> String {
     match e {
         Expr::Number(n) => {
@@ -143,7 +167,7 @@ fn compile_expr(
 
                 // compute the binding expression
                 let bind_instrs =
-                    compile_expr(e, si_, &mut new_env, fun_map, break_target, false, label);
+                    compile_expr(e, si_, &mut new_env, fun_map, break_target, false, label, depth);
                 instrs.push_str(&bind_instrs);
                 instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
                 new_env.insert(id.clone(), si_);
@@ -152,12 +176,12 @@ fn compile_expr(
 
             // evaluate body
             let body_instrs =
-                compile_expr(body, si_, &mut new_env, fun_map, break_target, tail, label);
+                compile_expr(body, si_, &mut new_env, fun_map, break_target, tail, label, depth);
             instrs.push_str(&body_instrs);
             instrs
         }
         Expr::UnOp(op, e) => {
-            let mut instrs = compile_expr(e, si, env, fun_map, break_target, false, label);
+            let mut instrs = compile_expr(e, si, env, fun_map, break_target, false, label, depth);
             match op {
                 Op1::Add1 => {
                     instrs.push_str(&check_is_num("rax"));
@@ -185,8 +209,8 @@ add rsp, 8",
         }
         Expr::BinOp(op, e1, e2) => {
             let mut instrs = String::new();
-            let e2_instrs = compile_expr(e2, si, env, fun_map, break_target, false, label);
-            let e1_instrs = compile_expr(e1, si + 1, env, fun_map, break_target, false, label);
+            let e2_instrs = compile_expr(e2, si, env, fun_map, break_target, false, label, depth);
+            let e1_instrs = compile_expr(e1, si + 1, env, fun_map, break_target, false, label, depth);
             let e2_location = format!("[rsp + {}]", si * 8);
 
             instrs.push_str(&format!(
@@ -237,9 +261,9 @@ mov {e2_location}, rax{e1_instrs}"
         Expr::If(cond, thn, els) => {
             let end_label = new_label(label, "ifend");
             let else_label = new_label(label, "ifelse");
-            let cond_instrs = compile_expr(cond, si, env, fun_map, break_target, false, label);
-            let thn_intrs = compile_expr(thn, si, env, fun_map, break_target, tail, label);
-            let els_intrs = compile_expr(els, si, env, fun_map, break_target, tail, label);
+            let cond_instrs = compile_expr(cond, si, env, fun_map, break_target, false, label, depth);
+            let thn_intrs = compile_expr(thn, si, env, fun_map, break_target, tail, label, depth);
+            let els_intrs = compile_expr(els, si, env, fun_map, break_target, tail, label, depth);
             format!(
                 "{cond_instrs}
 cmp rax, 3
@@ -252,7 +276,7 @@ jmp {end_label}
         Expr::Loop(body) => {
             let begin_label = new_label(label, "loop_begin");
             let end_label = new_label(label, "loop_end");
-            let instrs = compile_expr(body, si, env, fun_map, &end_label, false, label);
+            let instrs = compile_expr(body, si, env, fun_map, &end_label, false, label, depth);
             format!(
                 "
 {begin_label}:{instrs}
@@ -265,7 +289,7 @@ jmp {begin_label}
                 panic!("break outside of loop")
             }
 
-            let instrs = compile_expr(body, si, env, fun_map, break_target, false, label);
+            let instrs = compile_expr(body, si, env, fun_map, break_target, false, label, depth);
             format!(
                 "{instrs}
 jmp {break_target}"
@@ -275,7 +299,7 @@ jmp {break_target}"
             Some(stack_index) => {
                 let id_location = format!("[rsp + {}]", *stack_index * 8);
 
-                let instrs = compile_expr(e, si, env, fun_map, break_target, false, label);
+                let instrs = compile_expr(e, si, env, fun_map, break_target, false, label, depth);
                 format!(
                     "{instrs}
 mov {id_location}, rax"
@@ -290,14 +314,14 @@ mov {id_location}, rax"
             // evaluate each expression except for the last one
             for index in 0..es.len() - 1 {
                 let expression =
-                    compile_expr(&es[index], si, env, fun_map, break_target, false, label);
+                    compile_expr(&es[index], si, env, fun_map, break_target, false, label, depth);
                 instrs.push_str(&expression);
             }
 
             // evaluate the last expression and pass in the tail flag
             if let Some(last_expr) = es.last() {
                 let expression =
-                    compile_expr(last_expr, si, env, fun_map, break_target, tail, label);
+                    compile_expr(last_expr, si, env, fun_map, break_target, tail, label, depth);
                 instrs.push_str(&expression);
             }
 
@@ -308,7 +332,7 @@ mov {id_location}, rax"
             let mut instrs = String::new();
             for (index, e) in es.iter().enumerate() {
                 let si_ = si + index as u32;
-                let expression = compile_expr(e, si_, env, fun_map, break_target, false, label);
+                let expression = compile_expr(e, si_, env, fun_map, break_target, false, label, depth);
                 instrs.push_str(&expression);
                 instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
             }
@@ -348,9 +372,9 @@ add rax, 1"
         Expr::Index(tup_expr, num_expr) => {
             let mut instrs = String::new();
 
-            let tup_instrs = compile_expr(tup_expr, si, env, fun_map, break_target, false, label);
+            let tup_instrs = compile_expr(tup_expr, si, env, fun_map, break_target, false, label, depth);
             let num_instrs =
-                compile_expr(num_expr, si + 1, env, fun_map, break_target, false, label);
+                compile_expr(num_expr, si + 1, env, fun_map, break_target, false, label, depth);
             let tup_location = format!("[rsp + {}]", si * 8);
 
             instrs.push_str(&format!(
@@ -398,7 +422,7 @@ cmove rax, rcx"
         }
 
         Expr::FunCall(name, args) => match fun_map.clone().get(name) {
-            Some((param_count, depth)) => {
+            Some((param_count, param_depth)) => {
                 let arg_count = args.len() as u32;
                 if *param_count != arg_count {
                     panic!("Invalid: calling functions with wrong number of arguments")
@@ -410,7 +434,7 @@ cmove rax, rcx"
                 for (index, arg) in args.iter().enumerate() {
                     let si_ = si + index as u32;
                     let arg_instrs =
-                        compile_expr(arg, si_, env, fun_map, break_target, false, label);
+                        compile_expr(arg, si_, env, fun_map, break_target, false, label, depth);
                     instrs.push_str(&arg_instrs);
                     instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
                 }
@@ -422,15 +446,15 @@ cmove rax, rcx"
 mov rbx, [rsp + {}]
 mov [rsp + {}], rbx",
                             (arg_index + index) * 8,
-                            (index + 1) * 8
+                            (depth + 1 + index) * 8
                         ));
                     }
-                    instrs.push_str(&format!("\njmp {fun_label}"));
+                    instrs.push_str(&format!("
+add rsp, {}
+jmp {fun_label}", depth * 8));
                 } else {
-                    let offset_index = if *depth % 2 == 0 { *depth + 1 } else { *depth };
-                    let arg_index = si + offset_index;
-                    let offset = offset_index * 8;
-                    instrs.push_str(&format!("\nsub rsp, {offset}"));
+                    let arg_index = si + (*param_depth);
+                    instrs.push_str(&format!("\nsub rsp, {}", *param_depth * 8));
 
                     for index in 0..arg_count {
                         instrs.push_str(&format!(
@@ -445,7 +469,7 @@ mov [rsp + {}], rbx",
                     instrs.push_str(&format!(
                         "
 call {fun_label}
-add rsp, {offset}"
+add rsp, {}", *param_depth * 8
                     ));
                 }
 
