@@ -67,12 +67,22 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
                     param_instrs.push_str(&format!(
                         "
 mov rbx, [rsp + {}]
-mov [rsp + {}], rbx", offset + (index as u32 + 1) * 8, index * 8));
+mov [rsp + {}], rbx",
+                        offset + (index as u32 + 1) * 8,
+                        index * 8
+                    ));
                 }
-                let body_instrs =
-                    compile_expr(body, si_, &mut fun_env, &mut fun_map, "", true, &mut label, depth);
+                let body_instrs = compile_expr(
+                    body,
+                    si_,
+                    &mut fun_env,
+                    &mut fun_map,
+                    "",
+                    true,
+                    &mut label,
+                    depth,
+                );
 
-                
                 fun_instrs.push_str(&format!(
                     "
 {fun_label}:
@@ -95,11 +105,15 @@ ret"
                 depth += 1;
             }
             let offset = depth * 8;
-            let param_instrs = format!("
+            let param_instrs = format!(
+                "
 mov rbx, [rsp + {}]
-mov [rsp], rbx", offset + 8);
-            let expr_instrs = compile_expr(expr, 1, &mut env, &mut fun_map, "", true, &mut label, depth);
-  
+mov [rsp], rbx",
+                offset + 8
+            );
+            let expr_instrs =
+                compile_expr(expr, 1, &mut env, &mut fun_map, "", true, &mut label, depth);
+
             fun_instrs.push_str(&format!(
                 "
 main:
@@ -108,14 +122,14 @@ add rsp, {offset}
 ret"
             ));
 
-            
             format!(
                 " 
 sub rsp, {0}
 mov [rsp], rdi
 call main
 add rsp, {0}
-ret{fun_instrs}", param_depth * 8
+ret{fun_instrs}",
+                param_depth * 8
             )
         }
     }
@@ -129,7 +143,7 @@ fn compile_expr(
     break_target: &str,
     tail: bool,
     label: &mut u32,
-    depth: u32
+    depth: u32,
 ) -> String {
     match e {
         Expr::Number(n) => {
@@ -166,8 +180,16 @@ fn compile_expr(
                 binding_list.push(id.to_string());
 
                 // compute the binding expression
-                let bind_instrs =
-                    compile_expr(e, si_, &mut new_env, fun_map, break_target, false, label, depth);
+                let bind_instrs = compile_expr(
+                    e,
+                    si_,
+                    &mut new_env,
+                    fun_map,
+                    break_target,
+                    false,
+                    label,
+                    depth,
+                );
                 instrs.push_str(&bind_instrs);
                 instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
                 new_env.insert(id.clone(), si_);
@@ -175,8 +197,16 @@ fn compile_expr(
             }
 
             // evaluate body
-            let body_instrs =
-                compile_expr(body, si_, &mut new_env, fun_map, break_target, tail, label, depth);
+            let body_instrs = compile_expr(
+                body,
+                si_,
+                &mut new_env,
+                fun_map,
+                break_target,
+                tail,
+                label,
+                depth,
+            );
             instrs.push_str(&body_instrs);
             instrs
         }
@@ -210,7 +240,8 @@ add rsp, 8",
         Expr::BinOp(op, e1, e2) => {
             let mut instrs = String::new();
             let e2_instrs = compile_expr(e2, si, env, fun_map, break_target, false, label, depth);
-            let e1_instrs = compile_expr(e1, si + 1, env, fun_map, break_target, false, label, depth);
+            let e1_instrs =
+                compile_expr(e1, si + 1, env, fun_map, break_target, false, label, depth);
             let e2_location = format!("[rsp + {}]", si * 8);
 
             instrs.push_str(&format!(
@@ -261,7 +292,8 @@ mov {e2_location}, rax{e1_instrs}"
         Expr::If(cond, thn, els) => {
             let end_label = new_label(label, "ifend");
             let else_label = new_label(label, "ifelse");
-            let cond_instrs = compile_expr(cond, si, env, fun_map, break_target, false, label, depth);
+            let cond_instrs =
+                compile_expr(cond, si, env, fun_map, break_target, false, label, depth);
             let thn_intrs = compile_expr(thn, si, env, fun_map, break_target, tail, label, depth);
             let els_intrs = compile_expr(els, si, env, fun_map, break_target, tail, label, depth);
             format!(
@@ -313,15 +345,31 @@ mov {id_location}, rax"
 
             // evaluate each expression except for the last one
             for index in 0..es.len() - 1 {
-                let expression =
-                    compile_expr(&es[index], si, env, fun_map, break_target, false, label, depth);
+                let expression = compile_expr(
+                    &es[index],
+                    si,
+                    env,
+                    fun_map,
+                    break_target,
+                    false,
+                    label,
+                    depth,
+                );
                 instrs.push_str(&expression);
             }
 
             // evaluate the last expression and pass in the tail flag
             if let Some(last_expr) = es.last() {
-                let expression =
-                    compile_expr(last_expr, si, env, fun_map, break_target, tail, label, depth);
+                let expression = compile_expr(
+                    last_expr,
+                    si,
+                    env,
+                    fun_map,
+                    break_target,
+                    tail,
+                    label,
+                    depth,
+                );
                 instrs.push_str(&expression);
             }
 
@@ -332,7 +380,8 @@ mov {id_location}, rax"
             let mut instrs = String::new();
             for (index, e) in es.iter().enumerate() {
                 let si_ = si + index as u32;
-                let expression = compile_expr(e, si_, env, fun_map, break_target, false, label, depth);
+                let expression =
+                    compile_expr(e, si_, env, fun_map, break_target, false, label, depth);
                 instrs.push_str(&expression);
                 instrs.push_str(&format!("\nmov [rsp + {}], rax", si_ * 8));
             }
@@ -372,9 +421,26 @@ add rax, 1"
         Expr::Index(tup_expr, num_expr) => {
             let mut instrs = String::new();
 
-            let tup_instrs = compile_expr(tup_expr, si, env, fun_map, break_target, false, label, depth);
-            let num_instrs =
-                compile_expr(num_expr, si + 1, env, fun_map, break_target, false, label, depth);
+            let tup_instrs = compile_expr(
+                tup_expr,
+                si,
+                env,
+                fun_map,
+                break_target,
+                false,
+                label,
+                depth,
+            );
+            let num_instrs = compile_expr(
+                num_expr,
+                si + 1,
+                env,
+                fun_map,
+                break_target,
+                false,
+                label,
+                depth,
+            );
             let tup_location = format!("[rsp + {}]", si * 8);
 
             instrs.push_str(&format!(
@@ -449,9 +515,12 @@ mov [rsp + {}], rbx",
                             (depth + 1 + index) * 8
                         ));
                     }
-                    instrs.push_str(&format!("
+                    instrs.push_str(&format!(
+                        "
 add rsp, {}
-jmp {fun_label}", depth * 8));
+jmp {fun_label}",
+                        depth * 8
+                    ));
                 } else {
                     let arg_index = si + (*param_depth);
                     instrs.push_str(&format!("\nsub rsp, {}", *param_depth * 8));
@@ -469,7 +538,8 @@ mov [rsp + {}], rbx",
                     instrs.push_str(&format!(
                         "
 call {fun_label}
-add rsp, {}", *param_depth * 8
+add rsp, {}",
+                        *param_depth * 8
                     ));
                 }
 
