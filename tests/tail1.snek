@@ -1,8 +1,0 @@
-(fun (factorial acc num)
-    (if (<= num 0)
-        acc
-        (factorial (* acc num) (sub1 num))
-    )
-)
-
-(factorial 1 input)

@@ -15,7 +15,6 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
     let mut label = 0;
 
     let mut param_depth = 0;
-
     for fun in exprs.iter().take(exprs.len() - 1) {
         match fun {
             Expr::FunDef(name, params, _body) => match fun_map.get(name) {
@@ -60,7 +59,7 @@ pub fn compile_exprs(exprs: &[Expr]) -> String {
                     depth += 1;
                 }
                 let offset = depth * 8;
-                let fun_label = format!("fun_{}", name);
+                let fun_label = name.to_string();
 
                 let mut param_instrs = String::new();
                 for index in 0..params.len() {
@@ -98,6 +97,7 @@ ret"
     match exprs.last().expect("Expected at least one expression") {
         Expr::FunDef(_name, _params, _body) => panic!("Invalid: no expression found"),
         _ => {
+            let mut instrs = String::new();
             let expr = exprs.last().expect("Expected at least one expression");
             env.insert("input".to_string(), 0 as u32);
             let mut depth = 1 + depth(expr);
@@ -114,21 +114,21 @@ mov [rsp], rbx",
             let expr_instrs =
                 compile_expr(expr, 1, &mut env, &mut fun_map, "", true, &mut label, depth);
 
-            fun_instrs.push_str(&format!(
+            instrs.push_str(&format!(
                 "
 main:
 sub rsp, {offset}{param_instrs}{expr_instrs}
 add rsp, {offset}
 ret"
             ));
-
+            instrs.push_str(&fun_instrs);
             format!(
                 " 
 sub rsp, {0}
 mov [rsp], rdi
 call main
 add rsp, {0}
-ret{fun_instrs}",
+ret{instrs}",
                 param_depth * 8
             )
         }
@@ -172,12 +172,12 @@ fn compile_expr(
             let mut si_ = si;
             let mut new_env = env.clone();
 
-            let mut binding_list = Vec::new();
+            let mut binding_set = HashSet::new();
             for (id, e) in bindings {
-                if binding_list.contains(id) {
+                if binding_set.contains(id) {
                     panic!("Duplicate binding for {}", id);
                 }
-                binding_list.push(id.to_string());
+                binding_set.insert(id.to_string());
 
                 // compute the binding expression
                 let bind_instrs = compile_expr(
@@ -495,7 +495,7 @@ cmove rax, rcx"
                 }
 
                 let mut instrs = String::new();
-                let fun_label = format!("fun_{}", name);
+                let fun_label = name.to_string();
 
                 for (index, arg) in args.iter().enumerate() {
                     let si_ = si + index as u32;
