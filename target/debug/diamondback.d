@@ -1,1 +1,0 @@
-/Users/arthur/Desktop/UCSD/CSE\ 131/HW/egg-eater/Compiler/target/debug/diamondback: /Users/arthur/Desktop/UCSD/CSE\ 131/HW/egg-eater/Compiler/src/compile.rs /Users/arthur/Desktop/UCSD/CSE\ 131/HW/egg-eater/Compiler/src/expr.rs /Users/arthur/Desktop/UCSD/CSE\ 131/HW/egg-eater/Compiler/src/main.rs /Users/arthur/Desktop/UCSD/CSE\ 131/HW/egg-eater/Compiler/src/parse.rs
