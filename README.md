@@ -26,6 +26,7 @@ This is a compiler for the snek programming language.
                                      
 There are some files in the tests directory that you can reference. 
 If you want to write a snek program, do the following:
+1. install rust, cargo, and nasm
 1. Go to the root directory
 2. Create a file called [name].snek
 3. Write the snek program inside the file and save it
