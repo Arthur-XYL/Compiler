@@ -50,14 +50,15 @@ fn snek_str(val: i64, seen: &mut Vec<i64>) -> String {
 }
 
 #[export_name = "\x01snek_error"]
-pub extern "C" fn snek_error(errcode: i64) {
-    if errcode == 1 {
-        panic!("invalid argument: type error");
-    } else if errcode == 2 {
-        panic!("Invalid: overflow error");
-    } else if errcode == 3 {
-        panic!("Invalid: index out of bound error");
-    }
+pub extern "C" fn snek_error(errcode: i64) -> ! {  // Note the `-> !` return type
+    let msg = match errcode {
+        1 => "invalid argument: type error",
+        2 => "arithmetic overflow",
+        3 => "index out of bounds",
+        _ => "unknown runtime error",
+    };
+    eprintln!("Runtime error: {msg}");
+    std::process::exit(1);  // Immediate termination
 }
 
 fn parse_input(input: &str) -> i64 {

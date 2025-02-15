@@ -83,17 +83,17 @@ runtime_error_tests! {
     {
         name: error_tag,
         file: "error_tag.snek",
-        expected: ""
+        expected: "invalid argument: type error"
     },
     {
         name: error_bounds,
         file: "error_bounds.snek",
-        expected: ""
+        expected: "index out of bounds"
     },
     {
         name: wrong_param_type,
         file: "wrong_param_type.snek",
-        expected: ""
+        expected: "invalid argument: type error"
     },
 }
 

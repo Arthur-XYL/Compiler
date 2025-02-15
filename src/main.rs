@@ -27,17 +27,17 @@ extern snek_error
 our_code_starts_here:
 mov r15, rsi{result}
 type_error:
-sub rsp, 8
-mov rdi, 1
-call snek_error
+    sub rsp, 8
+    mov rdi, 1
+    call snek_error
 overflow_error:
-sub rsp, 8
-mov rdi, 2
-call snek_error
+    sub rsp, 8
+    mov rdi, 2
+    call snek_error
 index_out_of_bound_error:
-sub rsp, 8
-mov rdi, 3
-call snek_error"
+    sub rsp, 8
+    mov rdi, 3
+    call snek_error"
     );
 
     let mut out_file = File::create(out_name)?;

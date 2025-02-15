@@ -81,6 +81,7 @@ fn run_success_test(name: &str, file: &Path, expected: &str, input: Option<&str>
 }
 
 fn run_runtime_error_test(name: &str, file: &Path, expected: &str, input: Option<&str>) {
+    print!("running runtime test: {name}");
     if let Err(err) = compile(name, file) {
         panic!("expected a successful compilation, but got an error: `{err}`");
     }
